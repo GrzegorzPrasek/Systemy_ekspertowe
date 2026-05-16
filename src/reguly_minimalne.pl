@@ -1,0 +1,3 @@
+% Moduł wyznaczania reguł minimalnych, reduktów, rdzenia
+
+% ...algorytmy reduktów i rdzenia...

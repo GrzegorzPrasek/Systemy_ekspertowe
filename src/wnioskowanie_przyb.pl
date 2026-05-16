@@ -1,0 +1,3 @@
+% Moduł wnioskowania przybliżonego
+
+% ...reguły i logika częściowego dopasowania...

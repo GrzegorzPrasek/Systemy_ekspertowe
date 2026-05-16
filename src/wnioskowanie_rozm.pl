@@ -1,0 +1,3 @@
+% Moduł wnioskowania rozmytego
+
+% ...reguły i logika rozmyta...

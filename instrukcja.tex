@@ -1,0 +1,718 @@
+\documentclass[12pt,a4paper,oneside]{article}
+
+% ===== Kodowanie i język =====
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+
+% ===== Matematyka i symbole =====
+\usepackage{amsmath,amssymb}
+
+% ===== Układ strony =====
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+% ===== Tabele i listy =====
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[final]{pdfpages}
+
+% ===== Grafika i hiperłącza =====
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+
+% ===== Lepsze łamanie podpisów i tabel =====
+
+\usepackage{caption}
+\usepackage{float}
+
+\begin{document}
+
+\includepdf[pages=-]{title-syseks.pdf}
+
+\vspace{1em}
+
+{
+\setcounter{tocdepth}{1}
+\setlength{\parskip}{0pt}
+\tableofcontents
+}
+\newpage
+
+% =========================================================
+\section{Wprowadzenie}
+
+Celem projektu jest opracowanie systemu ekspertowego wspomagającego dobór kierunku studiów dla użytkownika na podstawie jego zainteresowań, predyspozycji, preferowanego stylu pracy, oczekiwań wobec przyszłej ścieżki zawodowej oraz wybranych ograniczeń. System ma prowadzić z użytkownikiem kontekstowy dialog, a następnie - na podstawie zgromadzonych faktów i reguł produkcji - wyprowadzać jedną lub kilka rekomendacji końcowych wraz z uzasadnieniem.
+
+Projekt będzie realizowany w języku Prolog jako system regułowy o modularnej architekturze. Szczególny nacisk zostanie położony na:
+\begin{itemize}[leftmargin=1.2cm]
+    \item rozdzielenie bazy wiedzy, mechanizmu sterowania oraz interfejsu,
+    \item kontekstowy charakter dialogu z użytkownikiem,
+    \item zastosowanie reguł produkcji zamiast prostego wyboru statycznej odpowiedzi,
+    \item wykorzystanie wnioskowania klasycznego, przybliżonego oraz rozmytego,
+    \item możliwość wyznaczania reguł minimalnych i atrybutów niezbędnych.
+\end{itemize}
+
+System ma stanowić wsparcie decyzyjne dla osób, które nie są pewne, jaki kierunek studiów najlepiej odpowiada ich profilowi. Nie zastępuje on doradcy zawodowego, lecz porządkuje wiedzę i umożliwia systematyczne dochodzenie do rekomendacji.
+
+% =========================================================
+\section{Temat i zakres problemu}
+
+\subsection{Uzasadnienie wyboru tematu}
+
+Wybór kierunku studiów jest problemem wielokryterialnym i niejednoznacznym. Decyzja ta zależy od wielu czynników, takich jak:
+\begin{itemize}[leftmargin=1.2cm]
+    \item zainteresowania użytkownika,
+    \item mocne i słabe strony,
+    \item preferencje dotyczące sposobu uczenia się i pracy,
+    \item stosunek do matematyki, analizy, twórczości i pracy z ludźmi,
+    \item gotowość do intensywnej nauki,
+    \item oczekiwania zawodowe i finansowe,
+    \item tolerancja stresu oraz niepewności.
+\end{itemize}
+
+Problem ten dobrze nadaje się do modelowania w postaci systemu ekspertowego, ponieważ:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item możliwe jest zdefiniowanie rozbudowanej bazy reguł eksperckich,
+    \item istnieje wiele alternatywnych ścieżek wnioskowania,
+    \item część kryteriów ma charakter nieostry i może być modelowana rozmycie,
+    \item możliwe jest zadawanie pytań zależnych od wcześniej uzyskanych odpowiedzi,
+    \item końcowa rekomendacja może być konstruowana dynamicznie na podstawie reguł.
+\end{enumerate}
+
+\subsection{Zakres systemu}
+
+System obejmuje:
+\begin{itemize}[leftmargin=1.2cm]
+    \item zebranie informacji o użytkowniku,
+    \item klasyfikację jego profilu poznawczego i preferencyjnego,
+    \item ocenę dopasowania do grup kierunków,
+    \item wyznaczenie kierunków rekomendowanych,
+    \item wskazanie kierunków alternatywnych,
+    \item uzasadnienie otrzymanej rekomendacji.
+\end{itemize}
+
+System nie obejmuje:
+\begin{itemize}[leftmargin=1.2cm]
+    \item rekrutacji na konkretne uczelnie,
+    \item analizy aktualnych progów punktowych,
+    \item automatycznego pobierania danych z zewnętrznych źródeł,
+    \item pełnego doradztwa zawodowego wykraczającego poza etap wyboru studiów.
+\end{itemize}
+
+% =========================================================
+\section{Cel projektu}
+
+Głównym celem projektu jest stworzenie systemu ekspertowego, który na podstawie odpowiedzi użytkownika będzie wyprowadzał rekomendację kierunku studiów lub grupy kierunków najlepiej dopasowanych do jego profilu.
+
+Cel główny można rozbić na następujące cele szczegółowe:
+\begin{itemize}[leftmargin=1.2cm]
+    \item opracowanie spójnej reprezentacji wiedzy dziedzinowej,
+    \item zaprojektowanie kontekstowego dialogu z użytkownikiem,
+    \item zbudowanie bazy wiedzy zawierającej reguły produkcji,
+    \item implementacja klasycznego mechanizmu wnioskowania,
+    \item implementacja komponentu wnioskowania przybliżonego,
+    \item implementacja komponentu wnioskowania rozmytego,
+    \item przygotowanie modułu znajdowania reguł minimalnych,
+    \item opracowanie przejrzystego interfejsu użytkownika.
+\end{itemize}
+
+% =========================================================
+\newpage
+\section{Charakterystyka użytkownika i scenariusz użycia}
+
+\subsection{Użytkownik docelowy}
+
+Głównym użytkownikiem systemu jest:
+\begin{itemize}[leftmargin=1.2cm]
+    \item uczeń szkoły średniej wybierający kierunek studiów,
+    \item maturzysta rozważający kilka alternatywnych ścieżek,
+    \item osoba planująca zmianę kierunku kształcenia,
+    \item użytkownik niezdecydowany, który chce uporządkować swoje preferencje.
+\end{itemize}
+
+\subsection{Przykładowy scenariusz użycia}
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Użytkownik uruchamia system.
+    \item System rozpoczyna dialog od pytań ogólnych.
+    \item Na podstawie odpowiedzi wybierana jest dalsza ścieżka pytań.
+    \item System dopytuje tylko o te cechy, które są istotne dla zawężenia przestrzeni rozwiązań.
+    \item Po zgromadzeniu wystarczającego zbioru faktów uruchamiane jest wnioskowanie.
+    \item System przedstawia rekomendowany kierunek lub grupę kierunków.
+    \item System pokazuje kierunki alternatywne.
+\end{enumerate}
+
+% =========================================================
+\newpage
+\section{Analiza dziedziny i wiedza ekspercka}
+
+\subsection{Główne obszary wiedzy}
+
+W systemie planuje się wyróżnić następujące obszary wiedzy, opisujące zarówno profil użytkownika, jak i charakter poszczególnych grup kierunków studiów. Przyjęty podział ma umożliwić formułowanie reguł prowadzących od odpowiedzi użytkownika do wniosków pośrednich, a następnie do rekomendacji końcowych.
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Zainteresowania przedmiotowe i tematyczne} - obszar obejmujący to, jakie dziedziny wiedzy użytkownik uznaje za ciekawe i angażujące. Mogą to być między innymi matematyka, informatyka, fizyka, biologia, chemia, języki obce, historia, psychologia, ekonomia, sztuka, projektowanie czy prawo.
+
+    \item \textbf{Predyspozycje analityczne i logiczne} - obszar opisujący łatwość rozumowania abstrakcyjnego, analizowania problemów, pracy z liczbami, wykresami, danymi i modelami formalnymi. Wiedza ta jest szczególnie istotna przy rekomendowaniu kierunków technicznych, ścisłych, informatycznych i ekonomicznych.
+
+    \item \textbf{Predyspozycje językowe, komunikacyjne i społeczne} - obszar obejmujący swobodę wypowiedzi, umiejętność argumentacji, łatwość pracy z tekstem, zdolności interpersonalne, chęć współpracy z ludźmi, empatię oraz gotowość do występowania publicznego lub prowadzenia rozmów.
+
+    \item \textbf{Predyspozycje twórcze i kreatywne} - obszar związany z wyobraźnią, oryginalnością myślenia, potrzebą tworzenia nowych rozwiązań, wrażliwością estetyczną oraz zainteresowaniem projektowaniem, sztuką, mediami lub niestandardowym podejściem do problemów.
+
+    \item \textbf{Preferowany styl pracy} - obszar opisujący, czy użytkownik lepiej odnajduje się w pracy indywidualnej, zespołowej, projektowej, zadaniowej, uporządkowanej, dynamicznej, praktycznej czy koncepcyjnej. Pozwala to odróżniać kierunki wymagające samodzielnej analizy od tych, które są silnie osadzone w pracy grupowej lub kontaktach społecznych.
+
+    \item \textbf{Preferowany styl uczenia się} - obszar dotyczący sposobu zdobywania wiedzy, np. przez teorię, praktykę, eksperymenty, obserwację, czytanie, działanie projektowe, ćwiczenia rachunkowe lub kontakt z realnymi problemami. Informacja ta może wpływać na dopasowanie do kierunków bardziej akademickich lub bardziej praktycznych.
+
+    \item \textbf{Motywacje edukacyjne i zawodowe} - obszar obejmujący oczekiwania użytkownika wobec przyszłości, takie jak chęć osiągania wysokich zarobków, stabilności zatrudnienia, samorozwoju, prestiżu społecznego, możliwości awansu, pracy za granicą lub prowadzenia własnej działalności.
+
+    \item \textbf{Stosunek do wymagań edukacyjnych} - obszar opisujący gotowość do intensywnej i długotrwałej nauki, akceptację wysokiego poziomu trudności, cierpliwość wobec złożonych zagadnień oraz gotowość do systematycznego rozwijania kompetencji specjalistycznych.
+
+    \item \textbf{Ograniczenia, niechęci i czynniki wykluczające} - obszar zawierający informacje o tym, czego użytkownik wyraźnie nie chce lub nie lubi, np. unika matematyki, nie chce pracować z ludźmi, źle czuje się w sytuacjach stresowych, nie lubi nauki pamięciowej, nie chce wykonywać zadań laboratoryjnych albo nie interesuje go działalność twórcza.
+
+    \item \textbf{Odporność psychiczna i funkcjonowanie w warunkach obciążenia} - obszar obejmujący tolerancję stresu, radzenie sobie z presją czasu, gotowość do podejmowania odpowiedzialnych decyzji, akceptację niepewności oraz zdolność działania w wymagającym środowisku.
+
+    \item \textbf{Orientacja na praktykę lub teorię} - obszar pozwalający określić, czy użytkownik preferuje rozwiązywanie konkretnych problemów praktycznych, czy raczej analizę teoretyczną, modelowanie i rozważania abstrakcyjne. Rozróżnienie to może być istotne np. przy wyborze między kierunkami inżynierskimi, naukowymi i społecznymi.
+
+    \item \textbf{Poziom zgodności z grupami kierunków} - obszar wynikowy, tworzony na podstawie wcześniejszych odpowiedzi i wniosków pośrednich. Określa stopień dopasowania użytkownika do poszczególnych grup kierunków oraz stanowi podstawę do sformułowania rekomendacji końcowej i rekomendacji alternatywnych.
+\end{itemize}
+
+\subsection{Przykładowe grupy kierunków}
+
+W celu uporządkowania procesu wnioskowania przyjęto podział kierunków studiów na grupy o zbliżonym profilu kompetencyjnym, poznawczym i zawodowym. Dzięki temu system nie będzie od razu przechodził do bardzo szczegółowych rekomendacji, lecz najpierw określi ogólny obszar najlepszego dopasowania, a następnie zawęzi wynik do konkretnych propozycji.
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item \textbf{Kierunki techniczne i inżynierskie} - obejmujące obszary związane z projektowaniem, konstruowaniem, analizą systemów technicznych i rozwiązywaniem problemów praktycznych. Do tej grupy można zaliczyć między innymi informatykę, automatykę i robotykę, mechatronikę, elektronikę, elektrotechnikę, budownictwo, mechanikę i budowę maszyn, inżynierię materiałową czy inżynierię produkcji.
+
+    \item \textbf{Kierunki ścisłe i formalne} - obejmujące dyscypliny wymagające silnego myślenia abstrakcyjnego, logicznego i modelowego. Należą do nich między innymi matematyka, fizyka, astronomia, informatyka teoretyczna, analiza danych, statystyka oraz wybrane kierunki o profilu badawczym.
+
+    \item \textbf{Kierunki informatyczno-analityczne} - grupa pośrednia między kierunkami technicznymi i ścisłymi, skoncentrowana na pracy z algorytmami, systemami informatycznymi, danymi i technologiami cyfrowymi. Można tu umieścić informatykę stosowaną, sztuczną inteligencję, cyberbezpieczeństwo, analitykę biznesową, systemy informacyjne, bioinformatykę czy inżynierię oprogramowania.
+
+    \item \textbf{Kierunki ekonomiczne i biznesowe} - obejmujące zagadnienia związane z gospodarką, finansami, zarządzaniem, rynkiem, przedsiębiorczością i analizą decyzji ekonomicznych. Przykładami są ekonomia, finanse i rachunkowość, zarządzanie, logistyka, analityka gospodarcza, marketing i zarządzanie projektami.
+
+    \item \textbf{Kierunki społeczne i interpersonalne} - związane z funkcjonowaniem człowieka w społeczeństwie, komunikacją, relacjami, organizacjami i procesami społecznymi. Do tej grupy należą między innymi psychologia, socjologia, pedagogika, zarządzanie zasobami ludzkimi, praca socjalna, bezpieczeństwo wewnętrzne czy nauki o rodzinie.
+
+    \item \textbf{Kierunki humanistyczne i językowe} - obejmujące dyscypliny oparte na analizie tekstu, kultury, historii, języka i znaczeń. Przykładami są filologia polska, filologie obce, historia, filozofia, kulturoznawstwo, lingwistyka stosowana, edytorstwo czy dziennikarstwo o profilu humanistycznym.
+
+    \item \textbf{Kierunki prawno-administracyjne} - obejmujące obszary wymagające dobrej pracy z tekstem, argumentacją, interpretacją norm oraz zrozumieniem struktur organizacyjnych i instytucjonalnych. Do grupy tej należą prawo, administracja, kryminologia, bezpieczeństwo narodowe, polityka publiczna i kierunki pokrewne.
+
+    \item \textbf{Kierunki medyczne, zdrowotne i przyrodnicze} – związane z naukami o organizmach żywych, zdrowiu człowieka, środowisku naturalnym i procesach biologicznych. Można tu zaliczyć medycynę, pielęgniarstwo, fizjoterapię, dietetykę, farmację, biologię, biotechnologię, ochronę środowiska, weterynarię oraz zdrowie publiczne.
+
+    \item \textbf{Kierunki kreatywne, artystyczne i projektowe} – obejmujące obszary wymagające wysokiej wyobraźni, wrażliwości estetycznej, zdolności twórczych i potrzeby ekspresji. Należą do nich między innymi grafika, wzornictwo, architektura wnętrz, multimedia, reżyseria, produkcja medialna, projektowanie gier, fotografia czy komunikacja wizualna.
+
+    \item \textbf{Kierunki przyrodniczo-technologiczne i laboratoryjne} – grupa obejmująca kierunki, w których istotne są eksperyment, obserwacja, analiza procesów naturalnych oraz praca laboratoryjna. Można tu umieścić chemię, technologię chemiczną, towaroznawstwo, inżynierię środowiska, biochemię, nanotechnologię i kierunki pokrewne.
+
+    \item \textbf{Kierunki usługowe i operacyjne} – obejmujące obszary nastawione na praktyczne funkcjonowanie organizacji, procesów oraz usług. Można tu zaliczyć turystykę i rekreację, hotelarstwo, transport, zarządzanie jakością, gospodarkę przestrzenną, logistykę operacyjną czy kierunki związane z organizacją usług.
+
+    \item \textbf{Kierunki interdyscyplinarne} – grupa przeznaczona dla użytkowników o mieszanym profilu, łączącym kilka obszarów kompetencji jednocześnie. Mogą tu trafiać takie propozycje jak kognitywistyka, zarządzanie i inżynieria produkcji, informatyka i ekonometria, projektowanie usług, cognitive science, ekonomia cyfrowa czy kierunki łączące technologię z kompetencjami społecznymi lub biznesowymi.
+\end{itemize}
+
+\subsection{Relacja między obszarami wiedzy a grupami kierunków}
+
+Przyjęta struktura wiedzy zakłada, że poszczególne grupy kierunków nie są oceniane wyłącznie na podstawie pojedynczych odpowiedzi, lecz na podstawie zestawu wzajemnie powiązanych cech. Przykładowo wysoki poziom predyspozycji analitycznych i zainteresowanie matematyką mogą wzmacniać dopasowanie do kierunków ścisłych, technicznych lub informatycznych, natomiast wysoka komunikatywność i zainteresowanie relacjami społecznymi mogą zwiększać zgodność z kierunkami społecznymi, pedagogicznymi lub psychologicznymi.
+
+W praktyce oznacza to, że system będzie najpierw budował profil użytkownika w kilku wymiarach, a dopiero później przechodził do przypisywania go do odpowiednich grup kierunków. Takie podejście pozwala uniknąć zbyt prostego wiązania pojedynczej odpowiedzi z gotowym wynikiem i lepiej odpowiada charakterowi systemu ekspertowego.
+
+\subsection{Przykładowe atrybuty dziedzinowe}
+
+W celu opisania profilu użytkownika przyjęto zestaw najważniejszych atrybutów wejściowych oraz atrybutów wynikowych. Obejmują one zainteresowania, predyspozycje, preferencje oraz poziom dopasowania do poszczególnych grup kierunków.
+\vspace{25px}
+\renewcommand{\arraystretch}{1.2}
+
+\begin{table}[H]
+\centering
+\caption{Wybrane atrybuty wejściowe użytkownika}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.6cm} >{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{6.2cm}}
+\toprule
+\textbf{Atrybut} & \textbf{Typ} & \textbf{Przykładowe wartości} \\
+\midrule
+zainteresowania przedmiotowe & wielowartościowy & matematyka, informatyka, biologia, języki, ekonomia, sztuka \\
+ulubiony styl pracy & symboliczny & indywidualny, zespołowy, mieszany \\
+preferowany typ zadań & wielowartościowy & analityczne, twórcze, praktyczne, organizacyjne, badawcze \\
+poziom analityczny & porządkowy / rozmyty & niski, średni, wysoki \\
+komunikatywnosc & porządkowy / rozmyty & niska, średnia, wysoka \\
+cheć pracy z ludzmi & porządkowy / rozmyty & niska, umiarkowana, wysoka \\
+kreatywność & porządkowy / rozmyty & niska, średnia, wysoka \\
+tolerancja stresu & porządkowy / rozmyty & niska, średnia, wysoka \\
+gotowosc do długiej nauki & porządkowy & niska, średnia, wysoka \\
+preferencja praktyczności & porządkowy & niska, średnia, wysoka \\
+preferowany styl uczenia sie & symboliczny & teoretyczny, praktyczny, projektowy, mieszany \\
+motywacja finansowa & porządkowy & niska, średnia, wysoka \\
+niechęć do matematyki & logiczny / porządkowy & tak/nie lub niska/średnia/wysoka \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Przykładowe atrybuty wynikowe}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.6cm} >{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{6.2cm}}
+\toprule
+\textbf{Atrybut} & \textbf{Typ} & \textbf{Przykładowe wartości} \\
+\midrule
+profil analityczny & wynikowy / rozmyty & niski, średni, wysoki \\
+profil społeczny & wynikowy / rozmyty & niski, średni, wysoki \\
+profil kreatywny & wynikowy / rozmyty & niski, średni, wysoki \\
+zgodność techniczna & wynikowy / rozmyty & niska, średnia, wysoka \\
+zgodność ścisła & wynikowy / rozmyty & niska, średnia, wysoka \\
+zgodność informatyczna & wynikowy / rozmyty & niska, średnia, wysoka \\
+zgodność ekonomiczna & wynikowy / rozmyty & niska, średnia, wysoka \\
+zgodność społeczna & wynikowy / rozmyty & niska, średnia, wysoka \\
+zgodność humanistyczna & wynikowy / rozmyty & niska, średnia, wysoka \\
+zgodność kreatywna & wynikowy / rozmyty & niska, średnia, wysoka \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Przedstawione atrybuty nie są traktowane jako niezależne. Część z nich jest pozyskiwana bezpośrednio w dialogu z użytkownikiem, natomiast część ma charakter pochodny i jest wyznaczana na podstawie reguł oraz wniosków pośrednich.
+% =========================================================
+\newpage
+\section{Reprezentacja wiedzy}
+
+\subsection{Założenia reprezentacji}
+
+Wiedza dziedzinowa będzie reprezentowana przy użyciu:
+\begin{itemize}[leftmargin=1.2cm]
+    \item faktów opisujących odpowiedzi użytkownika,
+    \item reguł produkcji prowadzących do wniosków pośrednich,
+    \item reguł wyprowadzających rekomendacje końcowe,
+    \item reguł obsługujących wnioskowanie przybliżone i rozmyte.
+\end{itemize}
+
+Reprezentacja danych będzie spójna i konsekwentna: wartości symboliczne pozostaną symbolicznymi, a wartości liczbowe liczbowymi. Nazwy atrybutów i wartości zostaną dobrane tak, aby były jednoznaczne zarówno na poziomie kodu, jak i dialogu z użytkownikiem.
+
+\subsection{Poziomy wnioskowania}
+
+W systemie planuje się trzy poziomy dochodzenia do rekomendacji:
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{wnioski pierwotne} – bezpośrednio z odpowiedzi użytkownika,
+    \item \textbf{wnioski pośrednie} – np. profil analityczny, profil społeczny, profil kreatywny,
+    \item \textbf{wnioski końcowe} – rekomendowane kierunki studiów wraz z uzasadnieniem.
+\end{enumerate}
+
+\subsection{Przykładowe fakty}
+
+\begin{verbatim}
+odpowiedz(uzytkownik, lubi_matematyke, tak).
+odpowiedz(uzytkownik, praca_z_ludzmi, wysoka).
+odpowiedz(uzytkownik, preferowany_styl_pracy, zespolowy).
+odpowiedz(uzytkownik, zainteresowanie, informatyka).
+\end{verbatim}
+
+\subsection{Przykładowe reguły}
+
+\begin{verbatim}
+profil_analityczny(wysoki) :-
+    odpowiedz(uzytkownik, lubi_matematyke, tak),
+    odpowiedz(uzytkownik, rozwiazywanie_problemow, tak),
+    odpowiedz(uzytkownik, poziom_logiczny, wysoki).
+
+rekomendacja(informatyka) :-
+    profil_analityczny(wysoki),
+    odpowiedz(uzytkownik, zainteresowanie, informatyka),
+    odpowiedz(uzytkownik, preferowany_styl_pracy, indywidualny).
+\end{verbatim}
+
+% =========================================================
+\section{Mechanizm wnioskowania}
+
+\subsection{Wnioskowanie klasyczne}
+
+Podstawowy mechanizm systemu będzie oparty na klasycznym wnioskowaniu regułowym w Prologu. Reguły będą prowadzić od odpowiedzi użytkownika do konkluzji pośrednich i końcowych. Mechanizm ten będzie odpowiedzialny za zasadniczy tok rozwiązywania problemu.
+
+\subsection{Wnioskowanie przybliżone}
+
+Wnioskowanie przybliżone zostanie wykorzystane w sytuacjach, gdy:
+\begin{itemize}[leftmargin=1.2cm]
+    \item użytkownik nie spełnia w pełni wszystkich przesłanek,
+    \item istnieje częściowe dopasowanie do kilku kierunków,
+    \item pewne wnioski można uzyskać mimo niepełnych danych.
+\end{itemize}
+
+% TODO: opisać konkretną metodę przybliżenia
+Przykładowo system może dopuścić rekomendację kierunku jako alternatywy, jeżeli użytkownik spełnia większość kluczowych przesłanek, ale nie wszystkie.
+
+\subsection{Wnioskowanie rozmyte}
+
+Wnioskowanie rozmyte zostanie użyte dla pojęć nieostrych, takich jak:
+\begin{itemize}[leftmargin=1.2cm]
+    \item wysoka kreatywność,
+    \item umiarkowana potrzeba kontaktu z ludźmi,
+    \item duża odporność na stres,
+    \item silne predyspozycje analityczne.
+\end{itemize}
+
+% TODO: opisać funkcje przynależności
+Dzięki temu możliwe będzie modelowanie cech, które nie mają charakteru zerojedynkowego, lecz przyjmują natężenie pośrednie.
+
+% =========================================================
+\section{Kontekstowy dialog z użytkownikiem}
+
+Jednym z kluczowych założeń projektu jest kontekstowy charakter dialogu. Oznacza to, że system nie będzie zadawał wszystkim użytkownikom identycznego zestawu pytań w tej samej kolejności. Dalsze pytania będą zależeć od wcześniej uzyskanych odpowiedzi oraz od aktualnej sytuacji w procesie wnioskowania.
+
+\subsection{Założenia dialogu}
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item Na początku zadawane są pytania ogólne.
+    \item Kolejne pytania zawężają przestrzeń możliwych rekomendacji.
+    \item System unika zadawania pytań nieistotnych z punktu widzenia aktualnego kontekstu.
+    \item W pytaniach stosowane są zarówno odpowiedzi jednokrotnego, jak i wielokrotnego wyboru.
+\end{itemize}
+
+\subsection{Przykład zależności kontekstowej}
+
+Jeżeli użytkownik zadeklaruje brak zainteresowania matematyką i analizą danych, system nie będzie rozwijał szczegółowego bloku pytań prowadzących do kierunków silnie technicznych lub ścisłych, lecz skieruje dialog w stronę innych grup kierunków.
+
+% =========================================================
+\section{Architektura systemu}
+
+System zostanie zaprojektowany modularnie. Zakłada się wydzielenie następujących komponentów:
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item \textbf{moduł interfejsu} – odpowiedzialny za komunikację z użytkownikiem,
+    \item \textbf{moduł sterowania i wnioskowania} – realizujący tok dialogu i wyprowadzanie wniosków,
+    \item \textbf{moduł bazy wiedzy} – przechowujący fakty, reguły i strukturę dziedzinową,
+    \item \textbf{moduł reguł minimalnych} – wyznaczający atrybuty niezbędne i reguły minimalne,
+    \item \textbf{moduł wnioskowania przybliżonego} – obsługujący częściowe dopasowanie,
+    \item \textbf{moduł wnioskowania rozmytego} – obsługujący pojęcia nieostre.
+\end{enumerate}
+
+\subsection{Proponowany podział prac w zespole}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{10cm}}
+\toprule
+\textbf{Osoba} & \textbf{Zakres odpowiedzialności} \\
+\midrule
+Jakub Kindracki & baza wiedzy: model dziedziny, atrybuty, wartości, reguły produkcji \\
+Wiktor Kobielski & wnioskowanie i interfejs: przebieg dialogu, pytania, odpowiedzi, logika sterowania \\
+Grzegorz Prasek & wnioskowanie przybliżone: częściowe dopasowanie, rekomendacje alternatywne \\
+Mykhailo Shamrai & wnioskowanie rozmyte: pojęcia nieostre, funkcje przynależności, ocena natężenia cech \\
+\bottomrule
+\end{longtable}
+
+Przedstawiony podział określa główne obszary odpowiedzialności poszczególnych członków zespołu. Nie oznacza on jednak całkowitego rozdzielenia prac, ponieważ w trakcie realizacji projektu członkowie zespołu będą również wzajemnie wspierać się przy projektowaniu, implementacji oraz testowaniu poszczególnych komponentów systemu.
+% =========================================================
+\section{Reguły minimalne}
+
+W systemie zostanie uwzględniony oddzielny moduł wyznaczania reguł minimalnych. Jego celem będzie:
+\begin{itemize}[leftmargin=1.2cm]
+    \item wskazanie minimalnego zbioru atrybutów potrzebnych do uzyskania określonej rekomendacji,
+    \item identyfikacja reguł kluczowych dla danej konkluzji,
+    \item zwiększenie przejrzystości działania systemu.
+\end{itemize}
+
+% TODO: można dodać przykład
+Przykładowo dla rekomendacji kierunku informatyka moduł może wskazać, że niezbędne są informacje o zainteresowaniach technicznych, poziomie analitycznym oraz preferowanym stylu pracy.
+
+% =========================================================
+\section{Redukty i rdzeń atrybutów}
+
+\subsection{Podstawy teoretyczne}
+
+Pojęcie reduktu wywodzi się z teorii zbiorów przybliżonych. W kontekście systemu ekspertowego redukt pozwala odpowiedzieć na pytanie: \textbf{jaki najmniejszy zbiór atrybutów wystarczy, aby system podejmował te same decyzje co przy użyciu pełnego zestawu atrybutów?}
+
+\subsection{Definicje}
+
+Niech $S = (U, A, V, f)$ będzie systemem informacyjnym, gdzie:
+\begin{itemize}
+    \item $U$ -- skończony zbiór obiektów,
+    \item $A = C \cup D$ -- zbiór atrybutów, złożony z~atrybutów warunkowych $C$ oraz atrybutów decyzyjnych $D$ (w naszym prztpadku - rekomendowany kierunek),
+    \item $V = \bigcup_{a \in A} V_a$ -- zbiór wartości atrybutów,
+    \item $f: U \times A \to V$ -- funkcja informacyjna przypisująca wartości.
+\end{itemize}
+
+\textbf{Relacja nierozróżnialności.} Dla podzbioru atrybutów $B \subseteq C$ definiujemy relację nierozróżnialności:
+\[
+    IND(B) = \{(x, y) \in U \times U : \forall_{a \in B}\; f(x,a) = f(y,a)\}
+\]
+Dwa obiekty są $B$-nierozróżnialne, jeżeli mają identyczne wartości wszystkich atrybutów z~$B$.
+
+\textbf{Redukt.} Podzbiór $R \subseteq C$ jest reduktem zbioru atrybutów warunkowych $C$ względem decyzji $D$, jeżeli spełnia dwa warunki:
+\begin{enumerate}
+    \item Musi być niezależnym zbiorem atrybutów - czyli tylko atrybuty niezbędne.
+    \item Musi zachowywać taką samą rozróżnialność obiektów jak zbiór redukowany.
+\end{enumerate}
+
+\textbf{Rdzeń} Rdzeniem nazywamy zbiór wszystkich niezbędnych atrybutów:
+\[
+    CORE(C, D) = \bigcap_{R \in RED(C,D)} R
+\]
+Rdzeń zawiera atrybuty, które występują w~\emph{każdym} redukcie, a więc są absolutnie niezbędne do poprawnej klasyfikacji. Ich usunięcie zawsze prowadzi do utraty informacji decyzyjnej.
+
+\subsection{Zastosowanie w projektowanym systemie}
+
+W~projektowanym systemie ekspertowym tablica decyzyjna powstaje z~odpowiedzi użytkowników (atrybuty warunkowe) oraz przypisanych im rekomendacji kierunków studiów (atrybut decyzyjny). Wyznaczenie reduktów pozwala na:
+
+\begin{itemize}
+    \item \textbf{identyfikację atrybutów zbędnych} -- takich, których pominięcie nie zmienia wyniku rekomendacji, co pozwala uprościć dialog z~użytkownikiem,
+    \item \textbf{skrócenie dialogu} -- system może zadawać pytania wyłącznie o~atrybuty należące do wybranego reduktu, pomijając pytania nieistotne z~punktu widzenia klasyfikacji,
+    \item \textbf{wyznaczenie rdzenia} -- wskazanie atrybutów, o~które system \emph{musi} zapytać niezależnie od ścieżki dialogu, ponieważ są niezbędne w~każdym wariancie wnioskowania,
+    \item \textbf{zwiększenie przejrzystości} -- użytkownik może otrzymać informację, które z~jego odpowiedzi miały kluczowe znaczenie dla rekomendacji,
+    \item \textbf{analizę alternatywnych ścieżek wnioskowania} -- istnienie wielu reduktów oznacza, że do tej samej rekomendacji można dojść różnymi zestawami pytań.
+\end{itemize}
+
+\subsection{Przykład}
+
+Rozważmy uproszczoną tablicę decyzyjną z~czterema atrybutami warunkowymi:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Obiekt} & \textbf{Poziom} & \textbf{Kreatywność} & \textbf{Komunikat.} & \textbf{Mat.} & \textbf{Rekomendacja} \\
+ & \textbf{analityczny} & & & & \\
+\hline
+$u_1$ & wysoki & niska & niska & tak & informatyka \\
+$u_2$ & wysoki & niska & średnia & tak & informatyka \\
+$u_3$ & niski & wysoka & wysoka & nie & pedagogika \\
+$u_4$ & średni & wysoka & średnia & nie & grafika \\
+$u_5$ & niski & niska & wysoka & nie & pedagogika \\
+\hline
+\end{tabular}
+\caption{Uproszczona tablica decyzyjna}
+\end{table}
+
+W~powyższym przykładzie atrybuty \emph{poziom analityczny} i~\emph{kreatywność} mogą stanowić redukt, ponieważ wystarczają do rozróżnienia wszystkich klas decyzyjnych. Atrybut \emph{lubi matematykę} może okazać się zbędny, jeśli informacja, którą wnosi, jest już zawarta w~pozostałych atrybutach. Natomiast \emph{poziom analityczny} może należeć do rdzenia, jeżeli występuje w~każdym wyznaczonym redukcie.
+
+
+\subsection{Algorytm wyznaczania reduktów metodą z~definicji}
+
+Spośród dostępnych metod wyznaczania reduktów w systemie zastosowana zostanie \textbf{metoda z definicji}, ponieważ jest ona najprostsza koncepcyjnie i najłatwiejsza w implementacji.
+
+\subsubsection{Krok 1 -- wyznaczenie jądra}
+
+Jądro $CORE(B)$, gdzie $B$ to wszystkie atrybuty, wyznacza się w~następujący sposób:
+
+\begin{enumerate}
+    \item Wyznaczyć klasy abstrakcji relacji nierozróżnialności $U/IND(B)$ dla pełnego zbioru atrybutów warunkowych $B$.
+    \item Dla każdego atrybutu $a_i \in B$ wyznaczyć klasy abstrakcji z~pominięciem tego atrybutu: $U/IND(B \setminus \{a_i\})$.
+    \item Jeżeli $U/IND(B) \neq U/IND(B \setminus \{a_i\})$, to atrybut $a_i$ jest \emph{niezbędny} -- jego usunięcie zmienia podział obiektów. Atrybut ten trafia do jądra.
+    \item Jeżeli $U/IND(B) = U/IND(B \setminus \{a_i\})$, to atrybut $a_i$ jest \emph{zbędny} -- jego pominięcie nie wpływa na rozróżnialność.
+    \item Jądro stanowi zbiór wszystkich atrybutów niezbędnych: $CORE(B) = \{a_i \in B : U/IND(B) \neq U/IND(B \setminus \{a_i\})\}$.
+\end{enumerate}
+
+Formalnie algorytm wyznaczania jądra można zapisać jako:
+
+\begin{verbatim}
+CORE(B) := {}
+Wyznacz U/IND(B)
+Dla każdego a_i należącego do B wykonaj:
+    Jeżeli U/IND(B) != U/IND(B \ {a_i}) to
+        CORE(B) := CORE(B) + {a_i}
+\end{verbatim}
+
+\subsubsection{Krok 2 -- wyznaczenie reduktów z~definicji}
+
+Po wyznaczeniu jądra przystępuje się do poszukiwania reduktów. Metoda z~definicji polega na sprawdzaniu kandydatów na redukty, zaczynając od jądra:
+
+\begin{enumerate}
+    \item Wyznaczyć jądro $CORE(B)$. Jądro jest zawsze podzbiorem każdego reduktu, więc stanowi punkt startowy.
+    \item Sprawdzić, czy samo jądro jest reduktem, tzn. czy spełnia oba warunki:
+    \begin{itemize}
+        \item jest zbiorem niezależnym (co z~definicji jądra jest spełnione -- składa się wyłącznie z~atrybutów niezbędnych),
+        \item zachowuje rozróżnialność: $U/IND(CORE(B)) = U/IND(B)$.
+    \end{itemize}
+    \item Jeżeli jądro nie jest reduktem (tzn. $U/IND(CORE(B)) \neq U/IND(B)$), należy rozszerzać je o~kolejne atrybuty spoza jądra. Rozważa się wszystkie nadzbiory jądra będące podzbiorami $B$ i~dla każdego kandydata $R$ sprawdza się:
+    \begin{itemize}
+        \item czy $U/IND(R) = U/IND(B)$ (warunek wystarczalności),
+        \item czy $R$ jest niezależny, tzn. żaden atrybut z~$R$ nie jest w~nim zbędny (warunek minimalności).
+    \end{itemize}
+    \item Wszystkie podzbiory spełniające oba warunki jednocześnie stanowią redukty systemu: $RED(B)$.
+\end{enumerate}
+
+\subsubsection{Przykład wyznaczenia reduktów}
+
+Rozważmy tablicę z~czterema atrybutami warunkowym $B = \{a, b, c\}$ i~atrybutem decyzyjnym $d$:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+$U$ & $a$ & $b$ & $c$ & $d$ \\
+\hline
+1 & 1 & 0 & 2 & 2 \\
+2 & 0 & 1 & 1 & 2 \\
+3 & 0 & 0 & 2 & 2 \\
+4 & 2 & 2 & 1 & 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Krok 1 -- wyznaczenie jądra:}
+
+$U/IND(\{a,b,c\}) = \{\{1\}, \{2\}, \{3\}, \{4\}\}$
+
+Sprawdzamy kolejno:
+\begin{itemize}
+    \item $U/IND(\{b,c\}) = \{\{1,3\}, \{2\}, \{4\}\}$ -- różne od $U/IND(B)$, więc $a$ jest niezbędny.
+    \item $U/IND(\{a,c\}) = \{\{1\}, \{2\}, \{3\}, \{4\}\}$ -- takie samo, więc $b$ jest zbędny.
+    \item $U/IND(\{a,b\}) = \{\{1\}, \{2\}, \{3\}, \{4\}\}$ -- takie samo, więc $c$ jest zbędny.
+\end{itemize}
+
+$CORE(B) = \{a\}$
+
+\textbf{Krok 2 -- szukanie reduktów:}
+
+Kandydaci zawierający jądro: $\{a\}$, $\{a,b\}$, $\{a,c\}$, $\{a,b,c\}$.
+
+Sprawdzamy $\{a\}$: $U/IND(\{a\}) = \{\{1\}, \{2,3\}, \{4\}\} \neq U/IND(B)$ -- nie jest reduktem.
+
+Sprawdzamy $\{a,b\}$: $U/IND(\{a,b\}) = \{\{1\}, \{2\}, \{3\}, \{4\}\} = U/IND(B)$, a~$\{a,b\}$ jest niezależny (oba atrybuty niezbędne w tym podzbiorze) -- \textbf{jest reduktem}.
+
+Sprawdzamy $\{a,c\}$: $U/IND(\{a,c\}) = \{\{1\}, \{2\}, \{3\}, \{4\}\} = U/IND(B)$, a~$\{a,c\}$ jest niezależny -- \textbf{jest reduktem}.
+
+Zbiór $\{a,b,c\}$ nie jest reduktem, bo nie jest niezależny ($b$ i~$c$ są w~nim zbędne).
+
+Zatem $RED(B) = \{\{a,b\}, \{a,c\}\}$, a~$CORE(B) = \{a,b\} \cap \{a,c\} = \{a\}$, co potwierdza wynik z kroku 1.
+
+\newpage
+
+\subsection{Wyznaczanie reduktów w~systemie}
+
+W~ramach implementacji planuje się realizację modułu wyznaczania reduktów, który będzie:
+\begin{enumerate}
+    \item konstruował tablicę decyzyjną na podstawie zgromadzonych scenariuszy testowych,
+    \item obliczał macierz rozróżnialności,
+    \item wyznaczał funkcję rozróżnialności jako koniunkcję alternatyw,
+    \item sprowadzał funkcję rozróżnialności do postaci minimalnej w~celu uzyskania wszystkich reduktów,
+    \item wyznaczał rdzeń jako część wspólną reduktów.
+\end{enumerate}
+
+Moduł ten będzie powiązany z~opisanym wcześniej modułem reguł minimalnych (sekcja~10) i~dostarczy formalnych podstaw do identyfikacji atrybutów niezbędnych oraz eliminacji atrybutów nadmiarowych.
+
+\newpage
+
+% =========================================================
+\section{Przykładowa struktura bazy wiedzy}
+
+\subsection{Kategorie reguł}
+
+Planowana baza wiedzy będzie obejmowała około 100 reguł produkcji podzielonych na następujące grupy:
+\begin{itemize}[leftmargin=1.2cm]
+    \item reguły identyfikujące profil użytkownika,
+    \item reguły klasyfikujące użytkownika do grup kierunków,
+    \item reguły wykluczające niektóre kierunki,
+    \item reguły wyprowadzające rekomendacje główne,
+    \item reguły generujące rekomendacje alternatywne,
+    \item reguły przybliżone,
+    \item reguły rozmyte.
+\end{itemize}
+
+\subsection{Przykładowy rozkład liczby reguł}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{8cm}c}
+\toprule
+\textbf{Typ reguł} & \textbf{Planowana liczba} \\
+\midrule
+Reguły profilujące użytkownika & 20 \\
+Reguły grup kierunków & 20 \\
+Reguły wykluczające / ograniczające & 15 \\
+Reguły rekomendacji końcowej & 20 \\
+Reguły alternatywnych rekomendacji & 10 \\
+Reguły przybliżone & 10 \\
+Reguły rozmyte & 10 \\
+\midrule
+\textbf{Łącznie} & \textbf{105} \\
+\bottomrule
+\end{tabular}
+\caption{Przykładowy plan rozbudowy bazy wiedzy}
+\end{table}
+
+% =========================================================
+\section{Interfejs użytkownika}
+
+Interfejs systemu powinien być prosty, czytelny i podporządkowany logice dialogu eksperckiego. Planowane są następujące cechy:
+\begin{itemize}[leftmargin=1.2cm]
+    \item prezentacja jednego pytania lub jednego bloku pytań naraz,
+    \item obsługa odpowiedzi jednokrotnego i wielokrotnego wyboru,
+    \item unikanie sztucznie rozbudowanych list rozwijanych,
+    \item możliwość prezentacji uzasadnienia końcowej rekomendacji,
+    \item możliwość prezentacji kierunków alternatywnych.
+\end{itemize}
+
+% TODO: jeśli chcecie, można tu dodać prosty mockup lub opis ekranów
+
+% =========================================================
+\section{Ograniczenia i założenia projektowe}
+
+W projekcie przyjmuje się następujące ograniczenia:
+\begin{itemize}[leftmargin=1.2cm]
+    \item system działa na wiedzy jawnie zapisanej w bazie reguł,
+    \item system nie uczy się automatycznie na podstawie danych historycznych,
+    \item rekomendacje mają charakter wspomagający, a nie rozstrzygający,
+    \item jakość rekomendacji zależy od poprawności i kompletności odpowiedzi użytkownika.
+\end{itemize}
+
+Dodatkowo zakłada się, że:
+\begin{itemize}[leftmargin=1.2cm]
+    \item rozwiązanie końcowe nie będzie zakodowane jako statyczny fakt,
+    \item fakty sterujące będą ograniczone do niezbędnego minimum,
+    \item wiedza dziedzinowa pozostanie oddzielona od interfejsu i sterowania,
+    \item dialog będzie realizowany kontekstowo.
+\end{itemize}
+
+% =========================================================
+\section{Plan implementacji}
+
+\subsection{Etap 1 – analiza problemu}
+\begin{itemize}[leftmargin=1.2cm]
+    \item identyfikacja atrybutów,
+    \item podział kierunków na grupy,
+    \item określenie źródeł wiedzy eksperckiej.
+\end{itemize}
+
+\subsection{Etap 2 – projekt reprezentacji wiedzy}
+\begin{itemize}[leftmargin=1.2cm]
+    \item definicja faktów i reguł,
+    \item projekt struktury bazy wiedzy,
+    \item definicja wniosków pośrednich i końcowych.
+\end{itemize}
+
+\subsection{Etap 3 – implementacja komponentów}
+\begin{itemize}[leftmargin=1.2cm]
+    \item moduł dialogu,
+    \item moduł wnioskowania klasycznego,
+    \item moduł wnioskowania przybliżonego,
+    \item moduł wnioskowania rozmytego,
+    \item moduł reguł minimalnych.
+\end{itemize}
+
+\subsection{Etap 4 – testowanie}
+\begin{itemize}[leftmargin=1.2cm]
+    \item testy scenariuszy użytkownika,
+    \item testy poprawności reguł,
+    \item testy spójności odpowiedzi i rekomendacji.
+\end{itemize}
+
+% =========================================================
+\section{Przewidywane rezultaty}
+
+Rezultatem projektu będzie działający prototyp systemu ekspertowego, który:
+\begin{itemize}[leftmargin=1.2cm]
+    \item przeprowadza kontekstowy dialog z użytkownikiem,
+    \item gromadzi fakty opisujące profil użytkownika,
+    \item stosuje reguły produkcji do wyznaczenia rekomendacji,
+    \item wykorzystuje elementy wnioskowania przybliżonego i rozmytego,
+    \item potrafi wskazać reguły minimalne i atrybuty niezbędne,
+    \item prezentuje uzasadnione rekomendacje kierunków studiów.
+\end{itemize}
+
+% =========================================================
+\section{Podsumowanie}
+
+Projekt systemu ekspertowego wspomagającego dobór kierunku studiów. Problem posiada naturalną strukturę regułową, dopuszcza różne ścieżki wnioskowania, wymaga kontekstowego dialogu z użytkownikiem i umożliwia wykorzystanie zarówno wnioskowania klasycznego, jak i przybliżonego oraz rozmytego.
+
+Proponowane rozwiązanie będzie miało charakter modularny, będzie zgodne z wymaganiami formalnymi projektu i da możliwość zbudowania obszernej, spójnej bazy wiedzy prowadzącej do dynamicznie konstruowanych rekomendacji końcowych.
+
+% ========================================================
+
+\end{document}

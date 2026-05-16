@@ -1,0 +1,3 @@
+% Testy scenariuszy użytkownika
+
+% ...przykładowe testy i przypadki...

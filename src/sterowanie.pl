@@ -1,0 +1,3 @@
+% Moduł sterowania i wnioskowania
+
+% ...logika sterowania dialogiem i wywołania reguł...
