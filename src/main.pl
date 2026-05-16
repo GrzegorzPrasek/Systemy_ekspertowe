@@ -9,7 +9,7 @@
 :- consult(testy).
 
 start :-
-    write('System ekspertowy: Dobór kierunku studiów'), nl,
+    write('System ekspertowy: Dobor kierunku studiow'), nl,
     rozpocznij_dialog.
 
 start_przyklad :-

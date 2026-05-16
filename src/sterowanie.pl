@@ -64,6 +64,27 @@ uzasadnienie_rekomendacji(turystyka_i_rekreacja, [
 	'wysoka komunikatywnosc'
 ]).
 
+uzasadnienie_rekomendacji(automatyka_i_robotyka, [
+	'wysoki profil analityczny',
+	'wysoka zgodnosc techniczna',
+	'zainteresowanie informatyka lub matematyka',
+	'preferowany styl pracy praktyczny'
+]).
+
+uzasadnienie_rekomendacji(informatyka_stosowana, [
+	'wysoki profil analityczny',
+	'wysoka zgodnosc techniczna',
+	'zainteresowanie informatyka',
+	'preferencja zastosowan praktycznych'
+]).
+
+uzasadnienie_rekomendacji(pedagogika, [
+	'wysoki profil spoleczny',
+	'wysoka chec pracy z ludzmi',
+	'wysoka zgodnosc spoleczna',
+	'zainteresowanie psychologia lub edukacja'
+]).
+
 % --- Wnioskowanie klasyczne ---
 % Reguły prowadzą od odpowiedzi użytkownika do wniosków pośrednich i końcowych
 wnioskuj_klasycznie(Wynik) :-

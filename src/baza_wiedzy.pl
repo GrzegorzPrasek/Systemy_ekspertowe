@@ -1,6 +1,11 @@
-% Baza wiedzy: fakty, reguły, atrybuty, grupy kierunków
+% Baza wiedzy: fakty, reguly, atrybuty, grupy kierunkow
 
 :- dynamic odpowiedz/3.
+:- discontiguous wniosek_posredni/2.
+:- discontiguous profil_analityczny/1.
+:- discontiguous profil_spoleczny/1.
+:- discontiguous profil_kreatywny/1.
+:- discontiguous rekomendacja/1.
 
 % Mapowanie aliasow atrybutow do jednej reprezentacji uzywanej w calym systemie.
 alias_atrybutu(zainteresowanie, zainteresowania_przedmiotowe).
