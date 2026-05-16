@@ -24,3 +24,7 @@ start_przykladowe_fakty :-
 uruchom_testy :-
     write('System ekspertowy: Uruchamianie testow'), nl,
     run_all_tests.
+
+start_reguly_minimalne :-
+    write('System ekspertowy: Analiza regul minimalnych'), nl,
+    wydrukuj_reguly_minimalne.

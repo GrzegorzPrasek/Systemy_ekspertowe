@@ -183,6 +183,40 @@ przeciecie_list(Lista, Akumulator, Wynik) :-
 % ?- atrybuty_warunkowe(A), macierz_rozroznialnosci(A, Macierz).
 % ?- wyjasnij_rekomendacje(informatyka, Atrybuty, Reguly).
 
+% --- Wydruk regul minimalnych (komenda do wywolania z promptu) ---
+wydrukuj_reguly_minimalne :-
+	atrybuty_warunkowe(Atrybuty),
+	write('=== Analiza regul minimalnych ==='), nl, nl,
+	write('Atrybuty warunkowe: '), write(Atrybuty), nl, nl,
+	write('--- Rdzen (atrybuty niezbedne) ---'), nl,
+	jadro(Atrybuty, Jadro),
+	write(Jadro), nl, nl,
+	write('--- Wszystkie redukty ---'), nl,
+	wszystkie_redukty(Atrybuty, Redukty),
+	wydrukuj_liste_reduktow(Redukty), nl,
+	write('--- Tablica decyzyjna ---'), nl,
+	wydrukuj_tablice_decyzyjna, nl,
+	write('--- Macierz rozroznialnosci ---'), nl,
+	macierz_rozroznialnosci(Atrybuty, Macierz),
+	wydrukuj_macierz(Macierz), nl,
+	write('=== Koniec analizy ==='), nl.
+
+wydrukuj_liste_reduktow([]).
+wydrukuj_liste_reduktow([R|Reszta]) :-
+	write('  Redukt: '), write(R), nl,
+	wydrukuj_liste_reduktow(Reszta).
+
+wydrukuj_tablice_decyzyjna :-
+	forall(obiekt(Id, PA, K, Kom, LM, Rek),
+		(write('  '), write(Id), write(': '),
+		 write([PA, K, Kom, LM]), write(' -> '), write(Rek), nl)).
+
+wydrukuj_macierz([]).
+wydrukuj_macierz([para(Id1, Id2, Roznice)|Reszta]) :-
+	write('  '), write(Id1), write(' vs '), write(Id2),
+	write(': '), write(Roznice), nl,
+	wydrukuj_macierz(Reszta).
+
 % --- Dynamiczny redukt z odpowiedzi użytkownika ---
 % redukt_lokalny(+Rekomendacja, -MinAtrybuty)
 % Zachłannie wyznacza minimalny podzbiór atrybutów z `odpowiedz/3`,
