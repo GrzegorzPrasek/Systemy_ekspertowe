@@ -443,6 +443,14 @@ rekomendacja_alternatywna(hotelarstwo) :-
 rekomendacja_alternatywna(kognitywistyka) :-
 	zgodnosc_interdyscyplinarna(srednia).
 
+rekomendacja_alternatywna(cyberbezpieczenstwo) :-
+	zgodnosc_informatyczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, wysoki).
+
+rekomendacja_alternatywna(analityka_danych) :-
+	profil_analityczny(wysoki),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, analityczne).
+
 alternatywy_rekomendacji(Alternatywy) :-
 	findall(Kierunek,
 		(rekomendacja_alternatywna(Kierunek), \+ rekomendacja(Kierunek)),
