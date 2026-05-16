@@ -182,3 +182,42 @@ przeciecie_list(Lista, Akumulator, Wynik) :-
 % ?- atrybuty_warunkowe(A), wszystkie_redukty(A, Redukty).
 % ?- atrybuty_warunkowe(A), macierz_rozroznialnosci(A, Macierz).
 % ?- wyjasnij_rekomendacje(informatyka, Atrybuty, Reguly).
+
+% --- Dynamiczny redukt z odpowiedzi użytkownika ---
+% redukt_lokalny(+Rekomendacja, -MinAtrybuty)
+% Zachłannie wyznacza minimalny podzbiór atrybutów z `odpowiedz/3`,
+% takich że rekomendacja jest nadal wyprowadzalna przez kaskadę
+% wnioskowania klasyczne → przybliżone → rozmyte.
+% Przed wyznaczaniem reduktu robi się kopię wszystkich faktów odpowiedz/3
+% i przywraca je w `setup_call_cleanup/3`, by inne predykaty (np.
+% przedstaw_alternatywy) widziały nienaruszony stan.
+redukt_lokalny(Rekomendacja, MinAtrybuty) :-
+	rekomendacja_dowiedlna(Rekomendacja),
+	findall(odpowiedz(U, A, V), odpowiedz(U, A, V), KopiaFaktow),
+	findall(A, odpowiedz(uzytkownik, A, _), AtrybutyZDuplikatami),
+	list_to_set(AtrybutyZDuplikatami, Atrybuty),
+	setup_call_cleanup(
+		true,
+		redukuj_atrybuty(Atrybuty, [], Rekomendacja, MinAtrybuty),
+		( retractall(odpowiedz(_, _, _)),
+		  forall(member(F, KopiaFaktow), assertz(F)) )
+	).
+
+% Iteracja zachłanna: dla każdego atrybutu próbujemy go usunąć.
+% Jeśli rekomendacja nadal się dowodzi - atrybut zbędny, pomijamy.
+% Jeśli przestaje się dowodzić - przywracamy fakty i włączamy atrybut do reduktu.
+redukuj_atrybuty([], Redukt, _, Redukt).
+redukuj_atrybuty([A | Reszta], Acc, Rekomendacja, Wynik) :-
+	findall(V, odpowiedz(uzytkownik, A, V), Wartosci),
+	retractall(odpowiedz(uzytkownik, A, _)),
+	(   rekomendacja_dowiedlna(Rekomendacja)
+	->  redukuj_atrybuty(Reszta, Acc, Rekomendacja, Wynik)
+	;   forall(member(V, Wartosci), assertz(odpowiedz(uzytkownik, A, V))),
+		redukuj_atrybuty(Reszta, [A | Acc], Rekomendacja, Wynik)
+	).
+
+% Test: czy rekomendacja jest wyprowadzalna na którymś z poziomów wnioskowania.
+% Odpowiada strukturze `uruchom_wnioskowanie/1` ze sterowania.
+rekomendacja_dowiedlna(R) :- rekomendacja(R), !.
+rekomendacja_dowiedlna(R) :- przyblizona_rekomendacja(R, _), !.
+rekomendacja_dowiedlna(R) :- rozmyta_rekomendacja(R, _).

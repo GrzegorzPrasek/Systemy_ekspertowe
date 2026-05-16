@@ -114,6 +114,15 @@ test_pelny_przeplyw_kreatywny :-
 	uruchom_wnioskowanie(grafika),
 	reset_test_state.
 
+test_redukt_lokalny_informatyka :-
+	zaladuj_scenariusz_techniczny,
+	redukt_lokalny(informatyka, Redukt),
+	Redukt \= [],
+	findall(A, odpowiedz(uzytkownik, A, _), Wszystkie),
+	list_to_set(Wszystkie, AtrybutyZbior),
+	forall(member(R, Redukt), member(R, AtrybutyZbior)),
+	reset_test_state.
+
 run_all_tests :-
 	run_named_test('reguly klasyczne', test_reguly_klasyczne),
 	run_named_test('rekomendacja informatyka', test_rekomendacja_informatyka),
@@ -128,6 +137,7 @@ run_all_tests :-
 	run_named_test('pelny przeplyw techniczny', test_pelny_przeplyw_techniczny),
 	run_named_test('pelny przeplyw spoleczny', test_pelny_przeplyw_spoleczny),
 	run_named_test('pelny przeplyw kreatywny', test_pelny_przeplyw_kreatywny),
+	run_named_test('redukt lokalny informatyka', test_redukt_lokalny_informatyka),
 	write('Zakonczono wszystkie testy.'), nl.
 
 run_named_test(Nazwa, Cel) :-

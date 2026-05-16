@@ -100,11 +100,23 @@ przedstaw_alternatywy :-
 przedstaw_uzasadnienie(Wynik) :-
 	uzasadnienie_rekomendacji(Wynik, Powody),
 	write('Uzasadnienie:'), nl,
-	przedstaw_powody(Powody).
+	przedstaw_powody(Powody),
+	przedstaw_minimalne_atrybuty(Wynik).
 
 przedstaw_uzasadnienie(Wynik) :-
 	\+ uzasadnienie_rekomendacji(Wynik, _),
-	write('Brak przygotowanego uzasadnienia dla tej rekomendacji.'), nl.
+	write('Brak przygotowanego uzasadnienia dla tej rekomendacji.'), nl,
+	przedstaw_minimalne_atrybuty(Wynik).
+
+% Dynamiczne wyznaczanie i prezentacja lokalnego reduktu z odpowiedzi użytkownika.
+% Pokazuje minimalny zbiór atrybutów wystarczający, by ten kierunek był
+% nadal rekomendowany przez kaskadę wnioskowania.
+przedstaw_minimalne_atrybuty(Wynik) :-
+	redukt_lokalny(Wynik, MinAtrybuty),
+	MinAtrybuty \= [], !,
+	write('Minimalny zbior atrybutow uzasadniajacy te rekomendacje:'), nl,
+	przedstaw_powody(MinAtrybuty).
+przedstaw_minimalne_atrybuty(_).
 
 przedstaw_powody([]).
 przedstaw_powody([Powod|Reszta]) :-
