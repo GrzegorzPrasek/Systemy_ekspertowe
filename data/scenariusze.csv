@@ -1,2 +1,6 @@
-# Przykładowe scenariusze/testy/tablica decyzyjna
-# atrybut1, atrybut2, ..., rekomendacja
+obiekt,poziom_analityczny,kreatywnosc,komunikatywnosc,lubi_matematyke,rekomendacja
+u1,wysoki,niska,niska,tak,informatyka
+u2,wysoki,niska,srednia,tak,informatyka
+u3,niski,wysoka,wysoka,nie,pedagogika
+u4,sredni,wysoka,srednia,nie,grafika
+u5,niski,niska,wysoka,nie,pedagogika
