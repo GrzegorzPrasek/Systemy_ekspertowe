@@ -6,6 +6,19 @@
 :- discontiguous profil_spoleczny/1.
 :- discontiguous profil_kreatywny/1.
 :- discontiguous rekomendacja/1.
+:- discontiguous zgodnosc_techniczna/1.
+:- discontiguous zgodnosc_scisla/1.
+:- discontiguous zgodnosc_informatyczna/1.
+:- discontiguous zgodnosc_ekonomiczna/1.
+:- discontiguous zgodnosc_spoleczna/1.
+:- discontiguous zgodnosc_humanistyczna/1.
+:- discontiguous zgodnosc_kreatywna/1.
+:- discontiguous zgodnosc_prawno_administracyjna/1.
+:- discontiguous zgodnosc_medyczna/1.
+:- discontiguous zgodnosc_uslugowa/1.
+:- discontiguous zgodnosc_przyrodniczo_laboratoryjna/1.
+:- discontiguous zgodnosc_interdyscyplinarna/1.
+:- discontiguous rekomendacja_alternatywna/1.
 
 % Mapowanie aliasow atrybutow do jednej reprezentacji uzywanej w calym systemie.
 alias_atrybutu(zainteresowanie, zainteresowania_przedmiotowe).
@@ -438,3 +451,318 @@ alternatywy_rekomendacji(Alternatywy) :-
 
 wniosek_koncowy(rekomendacja, Kierunek) :-
     rekomendacja(Kierunek).
+
+% ====== Uzasadnienia rekomendacji ======
+uzasadnienie_rekomendacji(informatyka, [
+	'wysoki profil analityczny',
+	'wysoka zgodnosc informatyczna',
+	'ulubiony styl pracy indywidualny'
+]).
+
+uzasadnienie_rekomendacji(psychologia, [
+	'wysoki profil spoleczny',
+	'wysoka zgodnosc spoleczna',
+	'wysoka chec pracy z ludzmi'
+]).
+
+uzasadnienie_rekomendacji(grafika, [
+	'wysoki profil kreatywny',
+	'wysoka zgodnosc kreatywna',
+	'preferowany styl uczenia projektowy'
+]).
+
+uzasadnienie_rekomendacji(matematyka, [
+	'wysoki profil analityczny',
+	'wysoka zgodnosc scisla',
+	'zainteresowanie matematyka'
+]).
+
+uzasadnienie_rekomendacji(prawo, [
+	'wysoka zgodnosc prawno-administracyjna',
+	'wysoka gotowosc do dlugiej nauki'
+]).
+
+uzasadnienie_rekomendacji(medycyna, [
+	'wysoka zgodnosc medyczna',
+	'zainteresowanie biologia',
+	'wysoka tolerancja stresu'
+]).
+
+uzasadnienie_rekomendacji(ekonomia, [
+	'wysoka zgodnosc ekonomiczna',
+	'wysoka motywacja finansowa'
+]).
+
+uzasadnienie_rekomendacji(kognitywistyka, [
+	'wysoka zgodnosc interdyscyplinarna',
+	'mieszany profil analityczno-spoleczny lub kreatywny'
+]).
+
+uzasadnienie_rekomendacji(biotechnologia, [
+	'wysoka zgodnosc przyrodniczo-laboratoryjna',
+	'zainteresowanie biologia',
+	'wysoka preferencja praktycznosci'
+]).
+
+uzasadnienie_rekomendacji(filologia_obce, [
+	'wysoka zgodnosc humanistyczna',
+	'zainteresowanie jezykami',
+	'wysoka komunikatywnosc'
+]).
+
+uzasadnienie_rekomendacji(turystyka_i_rekreacja, [
+	'wysoka zgodnosc uslugowa',
+	'wysoka preferencja praktycznosci',
+	'wysoka komunikatywnosc'
+]).
+
+uzasadnienie_rekomendacji(automatyka_i_robotyka, [
+	'wysoki profil analityczny',
+	'wysoka zgodnosc techniczna',
+	'zainteresowanie informatyka lub matematyka',
+	'preferowany styl pracy praktyczny'
+]).
+
+uzasadnienie_rekomendacji(informatyka_stosowana, [
+	'wysoki profil analityczny',
+	'wysoka zgodnosc techniczna',
+	'zainteresowanie informatyka',
+	'preferencja zastosowan praktycznych'
+]).
+
+uzasadnienie_rekomendacji(pedagogika, [
+	'wysoki profil spoleczny',
+	'wysoka chec pracy z ludzmi',
+	'wysoka zgodnosc spoleczna',
+	'zainteresowanie psychologia lub edukacja'
+]).
+
+% ====== Dodatkowe reguly zgodnosci i profilowania ======
+
+% Reguly zgodnosci technicznej - rozszerzenie
+zgodnosc_techniczna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, matematyka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, praktyczne),
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, wysoki).
+
+zgodnosc_techniczna(srednia) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, informatyka),
+	odpowiedz_uzytkownika(uzytkownik, preferencja_praktycznosci, srednia).
+
+% Reguly zgodnosci scislej - rozszerzenie
+zgodnosc_scisla(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, matematyka),
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, wysoki),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, analityczne).
+
+zgodnosc_scisla(srednia) :-
+	profil_analityczny(sredni),
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, matematyka).
+
+% Reguly zgodnosci informatycznej - rozszerzenie
+zgodnosc_informatyczna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, informatyka),
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, wysoki),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, analityczne).
+
+% Reguly zgodnosci ekonomicznej - rozszerzenie
+zgodnosc_ekonomiczna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, ekonomia),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, organizacyjne),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, wysoka).
+
+zgodnosc_ekonomiczna(srednia) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, ekonomia),
+	odpowiedz_uzytkownika(uzytkownik, motywacja_finansowa, srednia).
+
+% Reguly zgodnosci spolecznej - rozszerzenie
+zgodnosc_spoleczna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, chec_pracy_z_ludzmi, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, tolerancja_stresu, wysoka).
+
+zgodnosc_spoleczna(srednia) :-
+	odpowiedz_uzytkownika(uzytkownik, chec_pracy_z_ludzmi, umiarkowana),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, srednia).
+
+% Reguly zgodnosci humanistycznej - rozszerzenie
+zgodnosc_humanistyczna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, jezyki),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, tworcze),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, wysoka).
+
+zgodnosc_humanistyczna(srednia) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, jezyki),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, srednia).
+
+% Reguly zgodnosci kreatywnej - rozszerzenie
+zgodnosc_kreatywna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, kreatywnosc, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, sztuka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, tworcze).
+
+% Reguly zgodnosci prawno-administracyjnej - rozszerzenie
+zgodnosc_prawno_administracyjna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, gotowosc_do_dlugiej_nauki, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, organizacyjne),
+	odpowiedz_uzytkownika(uzytkownik, tolerancja_stresu, wysoka).
+
+% Reguly zgodnosci medycznej - rozszerzenie
+zgodnosc_medyczna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, biologia),
+	odpowiedz_uzytkownika(uzytkownik, tolerancja_stresu, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, praktyczne),
+	odpowiedz_uzytkownika(uzytkownik, gotowosc_do_dlugiej_nauki, wysoka).
+
+% Reguly zgodnosci uslugowej - rozszerzenie
+zgodnosc_uslugowa(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, organizacyjne),
+	odpowiedz_uzytkownika(uzytkownik, preferencja_praktycznosci, wysoka).
+
+zgodnosc_uslugowa(srednia) :-
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, srednia),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, praktyczne).
+
+% Reguly zgodnosci przyrodniczo-laboratoryjnej - rozszerzenie
+zgodnosc_przyrodniczo_laboratoryjna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, biologia),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, badawcze),
+	odpowiedz_uzytkownika(uzytkownik, preferencja_praktycznosci, wysoka).
+
+zgodnosc_przyrodniczo_laboratoryjna(srednia) :-
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, biologia),
+	odpowiedz_uzytkownika(uzytkownik, preferencja_praktycznosci, srednia).
+
+% Reguly zgodnosci interdyscyplinarnej - rozszerzenie
+zgodnosc_interdyscyplinarna(wysoka) :-
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, badawcze),
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, wysoki),
+	odpowiedz_uzytkownika(uzytkownik, kreatywnosc, srednia).
+
+zgodnosc_interdyscyplinarna(srednia) :-
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, badawcze),
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, sredni).
+
+% ====== Dodatkowe reguly profilujace - rozszerzenie ======
+profil_analityczny(wysoki) :-
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, wysoki),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, analityczne).
+
+profil_analityczny(sredni) :-
+	odpowiedz_uzytkownika(uzytkownik, poziom_analityczny, sredni),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, analityczne).
+
+profil_analityczny(sredni) :-
+	odpowiedz_uzytkownika(uzytkownik, lubi_matematyke, tak),
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, matematyka).
+
+profil_spoleczny(wysoki) :-
+	odpowiedz_uzytkownika(uzytkownik, chec_pracy_z_ludzmi, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, ulubiony_styl_pracy, zespolowy).
+
+profil_spoleczny(sredni) :-
+	odpowiedz_uzytkownika(uzytkownik, chec_pracy_z_ludzmi, umiarkowana),
+	odpowiedz_uzytkownika(uzytkownik, ulubiony_styl_pracy, zespolowy).
+
+profil_kreatywny(wysoki) :-
+	odpowiedz_uzytkownika(uzytkownik, kreatywnosc, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, sztuka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_styl_uczenia_sie, projektowy).
+
+profil_kreatywny(sredni) :-
+	odpowiedz_uzytkownika(uzytkownik, kreatywnosc, srednia),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, tworcze).
+
+% ====== Dodatkowe rekomendacje glowne - rozszerzenie ======
+rekomendacja(informatyka) :-
+	zgodnosc_informatyczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, analityczne),
+	dopuszczalna_grupa(kierunki_informatyczno_analityczne).
+
+rekomendacja(psychologia) :-
+	zgodnosc_spoleczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, psychologia),
+	odpowiedz_uzytkownika(uzytkownik, tolerancja_stresu, wysoka),
+	dopuszczalna_grupa(kierunki_spoleczne_interpersonalne).
+
+rekomendacja(grafika) :-
+	zgodnosc_kreatywna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, tworcze),
+	dopuszczalna_grupa(kierunki_kreatywne_artystyczne_projektowe).
+
+rekomendacja(ekonomia) :-
+	zgodnosc_ekonomiczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, organizacyjne),
+	dopuszczalna_grupa(kierunki_ekonomiczne_biznesowe).
+
+rekomendacja(medycyna) :-
+	zgodnosc_medyczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, tolerancja_stresu, wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, praktyczne),
+	dopuszczalna_grupa(kierunki_medyczne_zdrowotne_przyrodnicze).
+
+rekomendacja(prawo) :-
+	zgodnosc_prawno_administracyjna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, tolerancja_stresu, wysoka),
+	dopuszczalna_grupa(kierunki_prawno_administracyjne).
+
+rekomendacja(filologia_obce) :-
+	zgodnosc_humanistyczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, tworcze),
+	dopuszczalna_grupa(kierunki_humanistyczne_jezykowe).
+
+rekomendacja(biotechnologia) :-
+	zgodnosc_przyrodniczo_laboratoryjna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, badawcze),
+	dopuszczalna_grupa(kierunki_przyrodniczo_technologiczne_laboratoryjne).
+
+rekomendacja(turystyka_i_rekreacja) :-
+	zgodnosc_uslugowa(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, wysoka),
+	dopuszczalna_grupa(kierunki_uslugowe_operacyjne).
+
+rekomendacja(kognitywistyka) :-
+	zgodnosc_interdyscyplinarna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, badawcze),
+	dopuszczalna_grupa(kierunki_interdyscyplinarne).
+
+rekomendacja(automatyka_i_robotyka) :-
+	zgodnosc_techniczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, zainteresowania_przedmiotowe, informatyka),
+	dopuszczalna_grupa(kierunki_techniczne_inzynierskie).
+
+rekomendacja(informatyka_stosowana) :-
+	zgodnosc_informatyczna(srednia),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, praktyczne),
+	odpowiedz_uzytkownika(uzytkownik, preferencja_praktycznosci, wysoka),
+	dopuszczalna_grupa(kierunki_informatyczno_analityczne).
+
+rekomendacja(pedagogika) :-
+	zgodnosc_spoleczna(wysoka),
+	odpowiedz_uzytkownika(uzytkownik, preferowany_typ_zadan, praktyczne),
+	odpowiedz_uzytkownika(uzytkownik, ulubiony_styl_pracy, zespolowy),
+	dopuszczalna_grupa(kierunki_spoleczne_interpersonalne).
+
+% ====== Dodatkowe rekomendacje alternatywne - rozszerzenie ======
+rekomendacja_alternatywna(matematyka) :-
+	zgodnosc_scisla(srednia).
+
+rekomendacja_alternatywna(informatyka_stosowana) :-
+	zgodnosc_informatyczna(srednia),
+	odpowiedz_uzytkownika(uzytkownik, preferencja_praktycznosci, srednia).
+
+rekomendacja_alternatywna(filologia_obce) :-
+	zgodnosc_humanistyczna(srednia).
+
+rekomendacja_alternatywna(biotechnologia) :-
+	zgodnosc_przyrodniczo_laboratoryjna(srednia).
+
+rekomendacja_alternatywna(turystyka_i_rekreacja) :-
+	zgodnosc_uslugowa(srednia),
+	odpowiedz_uzytkownika(uzytkownik, komunikatywnosc, srednia).
+
+rekomendacja_alternatywna(medycyna) :-
+	zgodnosc_medyczna(srednia),
+	odpowiedz_uzytkownika(uzytkownik, tolerancja_stresu, srednia).
