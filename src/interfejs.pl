@@ -22,7 +22,7 @@ pytania_ogolne :-
         'Jaki preferujesz styl pracy?',
         [indywidualny, zespolowy, mieszany],
         ulubiony_styl_pracy),
-    zadaj_pytanie(poziom_analityczny,
+    zadaj_pytanie_rozmyte(poziom_analityczny,
         'Jak oceniasz swoj poziom analityczny?',
         [niski, sredni, wysoki],
         poziom_analityczny),
@@ -30,15 +30,15 @@ pytania_ogolne :-
         'Jakie typy zadan lubisz najbardziej? Podaj liste, np. [analityczne,praktyczne].',
         [analityczne, tworcze, praktyczne, organizacyjne, badawcze],
         preferowany_typ_zadan),
-    zadaj_pytanie(gotowosc_do_dlugiej_nauki,
+    zadaj_pytanie_rozmyte(gotowosc_do_dlugiej_nauki,
         'Jaka jest Twoja gotowosc do dlugiej nauki?',
         [niska, srednia, wysoka],
         gotowosc_do_dlugiej_nauki),
-    zadaj_pytanie(preferencja_praktycznosci,
+    zadaj_pytanie_rozmyte(preferencja_praktycznosci,
         'Jak wazna jest dla Ciebie praktycznosc studiow?',
         [niska, srednia, wysoka],
         preferencja_praktycznosci),
-    zadaj_pytanie(motywacja_finansowa,
+    zadaj_pytanie_rozmyte(motywacja_finansowa,
         'Jak wazna jest dla Ciebie motywacja finansowa?',
         [niska, srednia, wysoka],
         motywacja_finansowa),
@@ -78,27 +78,27 @@ sciezka_techniczna :-
         'Czy lubisz rozwiazywanie problemow?',
         [tak, nie],
         rozwiazywanie_problemow),
-    zadaj_pytanie(poziom_analityczny,
+    zadaj_pytanie_rozmyte(poziom_analityczny,
         'Jak oceniasz swoj poziom analityczny po rozwazeniu zadan technicznych?',
         [niski, sredni, wysoki],
         poziom_analityczny).
 
 sciezka_spoleczna :-
-    zadaj_pytanie(chec_pracy_z_ludzmi,
+    zadaj_pytanie_rozmyte(chec_pracy_z_ludzmi,
         'Jaka jest Twoja chec pracy z ludzmi?',
         [niska, umiarkowana, wysoka],
         chec_pracy_z_ludzmi),
-    zadaj_pytanie(komunikatywnosc,
+    zadaj_pytanie_rozmyte(komunikatywnosc,
         'Jak oceniasz swoja komunikatywnosc?',
         [niska, srednia, wysoka],
         komunikatywnosc),
-    zadaj_pytanie(tolerancja_stresu,
+    zadaj_pytanie_rozmyte(tolerancja_stresu,
         'Jak oceniasz swoja tolerancje stresu?',
         [niska, srednia, wysoka],
         tolerancja_stresu).
 
 sciezka_kreatywna :-
-    zadaj_pytanie(kreatywnosc,
+    zadaj_pytanie_rozmyte(kreatywnosc,
         'Jak oceniasz swoja kreatywnosc?',
         [niska, srednia, wysoka],
         kreatywnosc),
@@ -108,15 +108,15 @@ sciezka_kreatywna :-
         preferowany_styl_uczenia_sie).
 
 sciezka_bez_matematyki :-
-    zadaj_pytanie(chec_pracy_z_ludzmi,
+    zadaj_pytanie_rozmyte(chec_pracy_z_ludzmi,
         'Jaka jest Twoja chec pracy z ludzmi?',
         [niska, umiarkowana, wysoka],
         chec_pracy_z_ludzmi),
-    zadaj_pytanie(komunikatywnosc,
+    zadaj_pytanie_rozmyte(komunikatywnosc,
         'Jak oceniasz swoja komunikatywnosc?',
         [niska, srednia, wysoka],
         komunikatywnosc),
-    zadaj_pytanie(kreatywnosc,
+    zadaj_pytanie_rozmyte(kreatywnosc,
         'Jak oceniasz swoja kreatywnosc?',
         [niska, srednia, wysoka],
         kreatywnosc),
@@ -124,17 +124,17 @@ sciezka_bez_matematyki :-
         'Jaki preferujesz styl uczenia sie?',
         [teoretyczny, praktyczny, projektowy, mieszany],
         preferowany_styl_uczenia_sie),
-    zadaj_pytanie(tolerancja_stresu,
+    zadaj_pytanie_rozmyte(tolerancja_stresu,
         'Jak oceniasz swoja tolerancje stresu?',
         [niska, srednia, wysoka],
         tolerancja_stresu).
 
 sciezka_ogolna :-
-    zadaj_pytanie(komunikatywnosc,
+    zadaj_pytanie_rozmyte(komunikatywnosc,
         'Jak oceniasz swoja komunikatywnosc?',
         [niska, srednia, wysoka],
         komunikatywnosc),
-    zadaj_pytanie(kreatywnosc,
+    zadaj_pytanie_rozmyte(kreatywnosc,
         'Jak oceniasz swoja kreatywnosc?',
         [niska, srednia, wysoka],
         kreatywnosc),
@@ -142,7 +142,7 @@ sciezka_ogolna :-
         'Jaki preferujesz styl uczenia sie?',
         [teoretyczny, praktyczny, projektowy, mieszany],
         preferowany_styl_uczenia_sie),
-    zadaj_pytanie(tolerancja_stresu,
+    zadaj_pytanie_rozmyte(tolerancja_stresu,
         'Jak oceniasz swoja tolerancje stresu?',
         [niska, srednia, wysoka],
         tolerancja_stresu).
@@ -156,6 +156,24 @@ zadaj_pytanie(Klucz, Tresc, Opcje, Atrybut) :-
     ;   write('Niepoprawna odpowiedz. Sprobuj ponownie.'), nl,
         zadaj_pytanie(Klucz, Tresc, Opcje, Atrybut)
     ).
+
+% Hybrydowa wersja zadaj_pytanie/4 dla cech rozmytych: akceptuje
+% liczbe 0-10 (uruchamia sciezke fuzzy cecha_rozmyta/2) albo symbol
+% z listy opcji (klasyczna sciezka symboliczna).
+zadaj_pytanie_rozmyte(Klucz, Tresc, Opcje, Atrybut) :-
+    write('Pytanie ('), write(Klucz), write('): '), write(Tresc), nl,
+    write('Mozesz podac liczbe 0-10 lub jedna z: '), write(Opcje), nl,
+    read(Odpowiedz),
+    (   poprawna_odpowiedz_rozmyta(Odpowiedz, Opcje)
+    ->  zapisz_odpowiedz(Atrybut, Odpowiedz)
+    ;   write('Niepoprawna odpowiedz. Sprobuj ponownie.'), nl,
+        zadaj_pytanie_rozmyte(Klucz, Tresc, Opcje, Atrybut)
+    ).
+
+poprawna_odpowiedz_rozmyta(Odp, _) :-
+    number(Odp), Odp >= 0, Odp =< 10, !.
+poprawna_odpowiedz_rozmyta(Odp, Opcje) :-
+    member(Odp, Opcje).
 
 zadaj_pytanie_wielokrotnego_wyboru(Klucz, Tresc, Opcje, Atrybut) :-
     write('Pytanie ('), write(Klucz), write('): '), write(Tresc), nl,
