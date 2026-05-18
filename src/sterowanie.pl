@@ -108,15 +108,30 @@ przedstaw_uzasadnienie(Wynik) :-
 	write('Brak przygotowanego uzasadnienia dla tej rekomendacji.'), nl,
 	przedstaw_minimalne_atrybuty(Wynik).
 
-% Dynamiczne wyznaczanie i prezentacja lokalnego reduktu z odpowiedzi użytkownika.
-% Pokazuje minimalny zbiór atrybutów wystarczający, by ten kierunek był
-% nadal rekomendowany przez kaskadę wnioskowania.
+% Prezentacja reduktow wyznaczonych z tablicy decyzyjnej zbudowanej
+% z reguly rekomendacja/1. Pokazuje:
+%   - minimalny zbior atrybutow charakterystyczny dla danego kierunku
+%     (najmniejszy wariant klauzuli prowadzacej do tej decyzji),
+%   - rdzen globalny (atrybuty niezbedne w kazdym redukcie systemu).
 przedstaw_minimalne_atrybuty(Wynik) :-
-	redukt_lokalny(Wynik, MinAtrybuty),
-	MinAtrybuty \= [], !,
-	write('Minimalny zbior atrybutow uzasadniajacy te rekomendacje:'), nl,
-	przedstaw_powody(MinAtrybuty).
-przedstaw_minimalne_atrybuty(_).
+	zapewnij_tablice_decyzyjna,
+	(   redukt_dla_kierunku(Wynik, MinAtrybuty), MinAtrybuty \= []
+	->  write('Minimalny zbior atrybutow charakterystyczny dla rekomendacji:'), nl,
+	    przedstaw_powody(MinAtrybuty)
+	;   true
+	),
+	przedstaw_rdzen_globalny.
+
+przedstaw_rdzen_globalny :-
+	atrybuty_warunkowe(Atrybuty),
+	(   Atrybuty = [] -> true
+	;   jadro(Atrybuty, Rdzen),
+	    (   Rdzen = []
+	    ->  true
+	    ;   write('Rdzen tablicy decyzyjnej (atrybuty niezbedne):'), nl,
+	        przedstaw_powody(Rdzen)
+	    )
+	).
 
 przedstaw_powody([]).
 przedstaw_powody([Powod|Reszta]) :-

@@ -8,15 +8,71 @@
 % Redukt: najmniejszy zbiór atrybutów pozwalający na te same decyzje co pełny zestaw.
 % Rdzeń: zbiór wszystkich niezbędnych atrybutów (występujących w każdym redukcie).
 
-% --- Przykładowa tablica decyzyjna (do testów) ---
-% obiekt(Id, PoziomAnalityczny, Kreatywnosc, Komunikatywnosc, LubiMatematyke, Rekomendacja).
-obiekt(u1, wysoki, niska, niska, tak, informatyka).
-obiekt(u2, wysoki, niska, srednia, tak, informatyka).
-obiekt(u3, niski, wysoka, wysoka, nie, pedagogika).
-obiekt(u4, sredni, wysoka, srednia, nie, grafika).
-obiekt(u5, niski, niska, wysoka, nie, pedagogika).
+% --- Tablica decyzyjna budowana z bazy wiedzy ---
+% Kazdy wiersz odpowiada jednej galezi (klauzuli) reguly rekomendacja/1
+% rozwinietej do koniunkcji warunkow odpowiedz_uzytkownika/3.
+% obiekt_dec(Id, Atrybuty, Decyzja), gdzie Atrybuty to lista par Atrybut-Wartosc.
+:- dynamic obiekt_dec/3.
 
-atrybuty_warunkowe([poziom_analityczny, kreatywnosc, komunikatywnosc, lubi_matematyke]).
+% Predykat idempotentnie zapewniajacy obecnosc tablicy decyzyjnej.
+zapewnij_tablice_decyzyjna :-
+	obiekt_dec(_, _, _), !.
+zapewnij_tablice_decyzyjna :-
+	zbuduj_tablice_decyzyjna.
+
+zbuduj_tablice_decyzyjna :-
+	retractall(obiekt_dec(_, _, _)),
+	findall(Kierunek-Warunki,
+		(   clause(rekomendacja(Kierunek), Cialo),
+		    rozwin_cialo(Cialo, [], WarunkiRaw),
+		    spojny_zbior_warunkow(WarunkiRaw),
+		    sort(WarunkiRaw, Warunki)
+		),
+		Pary),
+	sort(Pary, Unikalne),
+	zapisz_wiersze_tablicy(Unikalne, 1).
+
+zapisz_wiersze_tablicy([], _).
+zapisz_wiersze_tablicy([Kierunek-Warunki | Reszta], N) :-
+	atom_concat(o, N, Id),
+	assertz(obiekt_dec(Id, Warunki, Kierunek)),
+	N1 is N + 1,
+	zapisz_wiersze_tablicy(Reszta, N1).
+
+% Rozwija cialo reguly do plaskiej koniunkcji warunkow Atrybut-Wartosc.
+% Wchodzi rekurencyjnie w predykaty pomocnicze (zgodnosc_*, profil_*).
+rozwin_cialo(true, Acc, Acc) :- !.
+rozwin_cialo((A, B), Acc, Out) :- !,
+	rozwin_cialo(A, Acc, Mid),
+	rozwin_cialo(B, Mid, Out).
+rozwin_cialo((A ; B), Acc, Out) :- !,
+	(   rozwin_cialo(A, Acc, Out)
+	;   rozwin_cialo(B, Acc, Out)
+	).
+rozwin_cialo(odpowiedz_uzytkownika(_, Atrybut, Wartosc), Acc,
+	     [Atrybut-Wartosc | Acc]) :- !.
+rozwin_cialo(\+ _, Acc, Acc) :- !.
+rozwin_cialo(dopuszczalna_grupa(_), Acc, Acc) :- !.
+rozwin_cialo(call(Goal), Acc, Out) :- !,
+	rozwin_cialo(Goal, Acc, Out).
+rozwin_cialo(member(_, _), Acc, Acc) :- !.
+rozwin_cialo(Cel, Acc, Out) :-
+	callable(Cel),
+	\+ predicate_property(Cel, built_in),
+	predicate_property(Cel, defined),
+	clause(Cel, Cialo),
+	rozwin_cialo(Cialo, Acc, Out).
+
+spojny_zbior_warunkow(Warunki) :-
+	\+ ( member(A-V1, Warunki),
+	     member(A-V2, Warunki),
+	     V1 \= V2 ).
+
+% Wszystkie atrybuty wystepujace w tablicy decyzyjnej.
+atrybuty_warunkowe(Atrybuty) :-
+	zapewnij_tablice_decyzyjna,
+	findall(A, (obiekt_dec(_, W, _), member(A-_, W)), Wszystkie),
+	sort(Wszystkie, Atrybuty).
 
 minimalne_atrybuty_rekomendacji(informatyka,
 	[zainteresowania_przedmiotowe, poziom_analityczny, ulubiony_styl_pracy]).
@@ -37,19 +93,20 @@ wyjasnij_rekomendacje(Kierunek, Atrybuty, Reguly) :-
 	kluczowe_reguly_dla_rekomendacji(Kierunek, Reguly).
 
 identyfikatory_obiektow(Ids) :-
-	findall(Id, obiekt(Id, _, _, _, _, _), Ids).
+	zapewnij_tablice_decyzyjna,
+	findall(Id, obiekt_dec(Id, _, _), Ids).
 
 decyzja_obiektu(Id, Decyzja) :-
-	obiekt(Id, _, _, _, _, Decyzja).
+	obiekt_dec(Id, _, Decyzja).
 
-wartosc_atrybutu(Id, poziom_analityczny, Wartosc) :-
-	obiekt(Id, Wartosc, _, _, _, _).
-wartosc_atrybutu(Id, kreatywnosc, Wartosc) :-
-	obiekt(Id, _, Wartosc, _, _, _).
-wartosc_atrybutu(Id, komunikatywnosc, Wartosc) :-
-	obiekt(Id, _, _, Wartosc, _, _).
-wartosc_atrybutu(Id, lubi_matematyke, Wartosc) :-
-	obiekt(Id, _, _, _, Wartosc, _).
+% Wartosc atrybutu w wierszu: jesli regula nie ogranicza atrybutu,
+% zwracamy specjalna wartosc 'dowolne' (semantyka "don't care").
+wartosc_atrybutu(Id, Atrybut, Wartosc) :-
+	obiekt_dec(Id, Warunki, _),
+	(   memberchk(Atrybut-Wartosc, Warunki)
+	->  true
+	;   Wartosc = dowolne
+	).
 
 wektor_atrybutow(Id, Atrybuty, Wektor) :-
 	findall(Wartosc,
@@ -114,6 +171,8 @@ atrybuty_rozrozniajace(Id1, Id2, Atrybuty, Roznice) :-
 		(member(Atrybut, Atrybuty),
 		 wartosc_atrybutu(Id1, Atrybut, W1),
 		 wartosc_atrybutu(Id2, Atrybut, W2),
+		 W1 \= dowolne,
+		 W2 \= dowolne,
 		 W1 \= W2),
 		Roznice).
 
@@ -207,9 +266,36 @@ wydrukuj_liste_reduktow([R|Reszta]) :-
 	wydrukuj_liste_reduktow(Reszta).
 
 wydrukuj_tablice_decyzyjna :-
-	forall(obiekt(Id, PA, K, Kom, LM, Rek),
+	zapewnij_tablice_decyzyjna,
+	forall(obiekt_dec(Id, Warunki, Rek),
 		(write('  '), write(Id), write(': '),
-		 write([PA, K, Kom, LM]), write(' -> '), write(Rek), nl)).
+		 write(Warunki), write(' -> '), write(Rek), nl)).
+
+% --- Redukt charakterystyczny dla pojedynczej rekomendacji ---
+% Sposrod wszystkich wierszy tablicy prowadzacych do tego kierunku
+% wybiera podzbior atrybutow o najmniejszej licznosci.
+redukt_dla_kierunku(Kierunek, MinAtrybuty) :-
+	zapewnij_tablice_decyzyjna,
+	findall(Atrybuty,
+		(   obiekt_dec(_, Warunki, Kierunek),
+		    pairs_keys(Warunki, Klucze),
+		    sort(Klucze, Atrybuty)
+		),
+		Listy),
+	Listy \= [],
+	najkrotsza_lista(Listy, MinAtrybuty).
+
+najkrotsza_lista([L], L) :- !.
+najkrotsza_lista([L | Reszta], Min) :-
+	najkrotsza_lista(Reszta, M),
+	length(L, NL),
+	length(M, NM),
+	( NL =< NM -> Min = L ; Min = M ).
+
+% Wszystkie warianty (rozne klauzule) prowadzace do danego kierunku.
+warianty_kierunku(Kierunek, Warianty) :-
+	zapewnij_tablice_decyzyjna,
+	findall(Warunki, obiekt_dec(_, Warunki, Kierunek), Warianty).
 
 wydrukuj_macierz([]).
 wydrukuj_macierz([para(Id1, Id2, Roznice)|Reszta]) :-
